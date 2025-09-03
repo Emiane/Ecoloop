@@ -23,6 +23,10 @@ export default {
         success: '#104911',
         warning: '#FFD449',
         background: '#F2EFE5',
+        
+        // UI colors
+        border: '#e5e7eb',
+        foreground: '#1f2937',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -1,6 +1,6 @@
 import express from 'express'
 import { getDatabase } from '../database/init.js'
-import { authenticateToken, requireSubscription } from '../middleware/auth.js'
+import { authenticate, requireSubscription } from '../middleware/auth.js'
 
 const router = express.Router()
 
@@ -11,7 +11,7 @@ function generateSimulatedData(baseValue, variance = 0.1) {
 }
 
 // GET /api/monitoring/dashboard - Tableau de bord monitoring
-router.get('/dashboard', authenticateToken, requireSubscription(['premium']), async (req, res) => {
+router.get('/dashboard', authenticate, requireSubscription(['premium']), async (req, res) => {
   try {
     const { lang = 'fr' } = req.query
     const db = await getDatabase()
@@ -133,7 +133,7 @@ function generateAlerts(lot) {
 }
 
 // GET /api/monitoring/lot/:id - Monitoring détaillé d'un lot
-router.get('/lot/:id', authenticateToken, requireSubscription(['premium']), async (req, res) => {
+router.get('/lot/:id', authenticate, requireSubscription(['premium']), async (req, res) => {
   try {
     const { id } = req.params
     const { lang = 'fr', period = '24h' } = req.query
@@ -291,7 +291,7 @@ function generateRecommendations(data, lang = 'fr') {
 }
 
 // GET /api/monitoring/alerts - Récupérer toutes les alertes
-router.get('/alerts', authenticateToken, requireSubscription(['premium']), async (req, res) => {
+router.get('/alerts', authenticate, requireSubscription(['premium']), async (req, res) => {
   try {
     const { lang = 'fr', limit = 50 } = req.query
     const db = await getDatabase()
@@ -408,7 +408,7 @@ function getBaseValue(type) {
 }
 
 // POST /api/monitoring/alerts/:id/acknowledge - Acquitter une alerte
-router.post('/alerts/:id/acknowledge', authenticateToken, requireSubscription(['premium']), async (req, res) => {
+router.post('/alerts/:id/acknowledge', authenticate, requireSubscription(['premium']), async (req, res) => {
   try {
     const { id } = req.params
     const { lang = 'fr' } = req.query
@@ -430,7 +430,7 @@ router.post('/alerts/:id/acknowledge', authenticateToken, requireSubscription(['
 })
 
 // GET /api/monitoring/devices - Liste des dispositifs
-router.get('/devices', authenticateToken, requireSubscription(['premium']), async (req, res) => {
+router.get('/devices', authenticate, requireSubscription(['premium']), async (req, res) => {
   try {
     const { lang = 'fr' } = req.query
     const db = await getDatabase()

@@ -1,6 +1,6 @@
 import express from 'express'
 import { getDatabase } from '../database/init.js'
-import { authenticateToken } from '../middleware/auth.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = express.Router()
 
@@ -93,7 +93,7 @@ router.get('/plans', async (req, res) => {
 })
 
 // GET /api/subscription/current - Récupérer l'abonnement actuel de l'utilisateur
-router.get('/current', authenticateToken, async (req, res) => {
+router.get('/current', authenticate, async (req, res) => {
   try {
     const { lang = 'fr' } = req.query
     const db = await getDatabase()
@@ -159,7 +159,7 @@ router.get('/current', authenticateToken, async (req, res) => {
 })
 
 // POST /api/subscription/upgrade - Upgrade d'abonnement
-router.post('/upgrade', authenticateToken, async (req, res) => {
+router.post('/upgrade', authenticate, async (req, res) => {
   try {
     const { plan_id, payment_method } = req.body
     const { lang = 'fr' } = req.query
@@ -253,7 +253,7 @@ router.post('/upgrade', authenticateToken, async (req, res) => {
 })
 
 // POST /api/subscription/downgrade - Downgrade d'abonnement
-router.post('/downgrade', authenticateToken, async (req, res) => {
+router.post('/downgrade', authenticate, async (req, res) => {
   try {
     const { confirm } = req.body
     const { lang = 'fr' } = req.query
@@ -303,7 +303,7 @@ router.post('/downgrade', authenticateToken, async (req, res) => {
 })
 
 // GET /api/subscription/history - Historique des transactions
-router.get('/history', authenticateToken, async (req, res) => {
+router.get('/history', authenticate, async (req, res) => {
   try {
     const { page = 1, limit = 20, lang = 'fr' } = req.query
     const offset = (page - 1) * limit
@@ -363,7 +363,7 @@ router.get('/history', authenticateToken, async (req, res) => {
 })
 
 // POST /api/subscription/auto-renew - Activer/désactiver le renouvellement automatique
-router.post('/auto-renew', authenticateToken, async (req, res) => {
+router.post('/auto-renew', authenticate, async (req, res) => {
   try {
     const { enabled } = req.body
     const { lang = 'fr' } = req.query
@@ -398,7 +398,7 @@ router.post('/auto-renew', authenticateToken, async (req, res) => {
 })
 
 // GET /api/subscription/features - Vérifier les fonctionnalités disponibles
-router.get('/features', authenticateToken, async (req, res) => {
+router.get('/features', authenticate, async (req, res) => {
   try {
     const { lang = 'fr' } = req.query
     const db = await getDatabase()
@@ -460,7 +460,7 @@ router.get('/features', authenticateToken, async (req, res) => {
 })
 
 // POST /api/subscription/gift - Offrir un abonnement (admin uniquement)
-router.post('/gift', authenticateToken, async (req, res) => {
+router.post('/gift', authenticate, async (req, res) => {
   try {
     const { user_email, plan_id, duration_months = 1 } = req.body
     const { lang = 'fr' } = req.query

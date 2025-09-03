@@ -32,6 +32,23 @@ const __dirname = path.dirname(__filename)
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// CORS configuration
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'http://localhost:3002',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:3002',
+    'http://127.0.0.1:5173'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
+
 // Security middleware
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
@@ -79,6 +96,19 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
+  })
+})
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Bienvenue sur l\'API Ecoloop',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      api: '/api',
+      documentation: '/api/docs'
+    }
   })
 })
 

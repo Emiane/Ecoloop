@@ -1,6 +1,6 @@
 import express from 'express'
 import { getDatabase } from '../database/init.js'
-import { authenticateToken } from '../middleware/auth.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = express.Router()
 
@@ -181,7 +181,7 @@ function generateResponse(intent, message, lang = 'fr') {
 }
 
 // POST /api/chatbot/message - Envoyer un message au chatbot
-router.post('/message', authenticateToken, async (req, res) => {
+router.post('/message', authenticate, async (req, res) => {
   try {
     const { message, conversation_id } = req.body
     const { lang = 'fr' } = req.query
@@ -268,7 +268,7 @@ router.post('/message', authenticateToken, async (req, res) => {
 })
 
 // GET /api/chatbot/conversations - Récupérer les conversations de l'utilisateur
-router.get('/conversations', authenticateToken, async (req, res) => {
+router.get('/conversations', authenticate, async (req, res) => {
   try {
     const { lang = 'fr', limit = 20 } = req.query
     const db = await getDatabase()
@@ -307,7 +307,7 @@ router.get('/conversations', authenticateToken, async (req, res) => {
 })
 
 // GET /api/chatbot/conversations/:id - Récupérer une conversation spécifique
-router.get('/conversations/:id', authenticateToken, async (req, res) => {
+router.get('/conversations/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params
     const { lang = 'fr' } = req.query
@@ -362,7 +362,7 @@ router.get('/conversations/:id', authenticateToken, async (req, res) => {
 })
 
 // DELETE /api/chatbot/conversations/:id - Supprimer une conversation
-router.delete('/conversations/:id', authenticateToken, async (req, res) => {
+router.delete('/conversations/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params
     const { lang = 'fr' } = req.query

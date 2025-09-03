@@ -1,11 +1,271 @@
 import express from 'express'
 import { getDatabase } from '../database/init.js'
-import { authenticateToken, requireSubscription } from '../middleware/auth.js'
+import { authenticate, requireSubscription } from '../middleware/auth.js'
 
 const router = express.Router()
 
+// GET /api/tracking/cycles - Récupérer tous les cycles d'un utilisateur
+router.get('/cycles', authenticate, async (req, res) => {
+  try {
+    const db = await getDatabase()
+    const userId = req.user.id
+
+    const cycles = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT * FROM poultry_lots 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC
+      `, [userId], (err, rows) => {
+        if (err) reject(err)
+        else resolve(rows || [])
+      })
+    })
+
+    res.json(cycles)
+  } catch (error) {
+    console.error('Erreur cycles:', error)
+    res.status(500).json({ error: 'Erreur serveur' })
+  }
+})
+
+// POST /api/tracking/cycles - Créer un nouveau cycle
+router.post('/cycles', authenticate, async (req, res) => {
+  try {
+    const db = await getDatabase()
+    const userId = req.user.id
+    const {
+      phase,
+      duration,
+      superficie,
+      budget,
+      poultryCount,
+      estimatedRevenue,
+      estimatedProfit
+    } = req.body
+
+    const cycleId = await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT INTO poultry_lots (
+          user_id, name, phase, planned_quantity, 
+          superficie, budget, estimated_revenue, estimated_profit,
+          planned_duration, status, start_date, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
+      `, [
+        userId, 
+        `Lot ${phase} - ${new Date().toLocaleDateString()}`,
+        phase,
+        poultryCount,
+        superficie,
+        budget,
+        estimatedRevenue,
+        estimatedProfit,
+        duration
+      ], function(err) {
+        if (err) reject(err)
+        else resolve(this.lastID)
+      })
+    })
+
+    const newCycle = {
+      id: cycleId,
+      phase,
+      duration,
+      superficie,
+      budget,
+      poultryCount,
+      estimatedRevenue,
+      estimatedProfit,
+      startDate: new Date(),
+      currentDay: 1,
+      isActive: true
+    }
+
+    res.status(201).json(newCycle)
+  } catch (error) {
+    console.error('Erreur création cycle:', error)
+    res.status(500).json({ error: 'Erreur création cycle' })
+  }
+})
+
+// GET /api/tracking/chicken-images/:day - Images du poulet par jour
+router.get('/chicken-images/:day', (req, res) => {
+  const day = parseInt(req.params.day)
+  
+  const chickenImages = {
+    1: {
+      url: '/images/poulet-j1.jpg',
+      description: 'Poussin nouveau-né - premier jour',
+      weight: '40-45g',
+      characteristics: 'Poussin jaune, actif, yeux vifs'
+    },
+    7: {
+      url: '/images/poulet-j7.jpg',
+      description: 'Poussin 1 semaine - plumes apparaissent',
+      weight: '100-120g',
+      characteristics: 'Premières plumes sur les ailes'
+    },
+    14: {
+      url: '/images/poulet-j14.jpg',
+      description: 'Poulet 2 semaines - emplumement partiel',
+      weight: '300-350g',
+      characteristics: 'Plumage se développe, plus de mobilité'
+    },
+    21: {
+      url: '/images/poulet-j21.jpg',
+      description: 'Poulet 3 semaines - emplumement avancé',
+      weight: '500-600g',
+      characteristics: 'Plumage presque complet'
+    },
+    28: {
+      url: '/images/poulet-j28.jpg',
+      description: 'Poulet 4 semaines - développement rapide',
+      weight: '800-1000g',
+      characteristics: 'Croissance musculaire visible'
+    },
+    35: {
+      url: '/images/poulet-j35.jpg',
+      description: 'Poulet 5 semaines - pré-finition',
+      weight: '1200-1500g',
+      characteristics: 'Développement musculaire important'
+    },
+    42: {
+      url: '/images/poulet-j42.jpg',
+      description: 'Poulet 6 semaines - prêt pour abattage',
+      weight: '2000-2500g',
+      characteristics: 'Poids commercial atteint'
+    }
+  }
+
+  const availableDays = Object.keys(chickenImages).map(Number).sort((a, b) => a - b)
+  const closestDay = availableDays.reduce((prev, curr) => 
+    Math.abs(curr - day) < Math.abs(prev - day) ? curr : prev
+  )
+
+  res.json(chickenImages[closestDay])
+})
+
+// GET /api/tracking/daily-tasks/:phase/:day - Tâches quotidiennes
+router.get('/daily-tasks/:phase/:day', (req, res) => {
+  const { phase, day } = req.params
+  const dayNum = parseInt(day)
+
+  const tasksByPhase = {
+    demarrage: {
+      1: [
+        'Réception des poussins (contrôle qualité)',
+        'Mise en éleveuse (température 32-35°C)',
+        'Distribution eau + glucose (50g/L)',
+        'Vaccination Newcastle + Gumboro',
+        'Éclairage 24h/24'
+      ],
+      7: [
+        'Pesée échantillon (100g minimum)',
+        'Ajustement température (30°C)',
+        'Contrôle croissance',
+        'Vaccination de rappel si nécessaire'
+      ]
+    },
+    croissance: {
+      14: [
+        'Changement vers aliment démarrage',
+        'Vaccination Newcastle La Sota',
+        'Ajustement mangeoires',
+        'Contrôle croissance (300g)',
+        'Nettoyage litière'
+      ],
+      21: [
+        'Pesée contrôle (500g)',
+        'Vaccination Gumboro intermédiaire',
+        'Réglage hauteur mangeoires',
+        'Contrôle sanitaire renforcé'
+      ]
+    },
+    finition: {
+      35: [
+        'Changement aliment croissance',
+        'Pesée (1.5kg attendu)',
+        'Surveillance sanitaire',
+        'Optimisation espace'
+      ],
+      42: [
+        'Pesée finale (2-2.5kg)',
+        'Arrêt alimentation 12h avant abattage',
+        'Préparation enlèvement',
+        'Bilan financier'
+      ]
+    }
+  }
+
+  let tasks = []
+  
+  if (tasksByPhase[phase] && tasksByPhase[phase][dayNum]) {
+    tasks = tasksByPhase[phase][dayNum]
+  } else {
+    tasks = [
+      'Contrôle température et ventilation',
+      'Vérification abreuvoirs et mangeoires',
+      'Observation état général du lot',
+      'Élimination des morts',
+      'Nettoyage zones souillées'
+    ]
+  }
+
+  res.json({ day: dayNum, phase, tasks })
+})
+
+// POST /api/tracking/calculate-cycle - Calculer un nouveau cycle
+router.post('/calculate-cycle', (req, res) => {
+  const { phase, superficie, budget } = req.body
+
+  const phases = {
+    'demarrage': { duration: 10, density: 30 },
+    'croissance': { duration: 24, density: 25 },
+    'finition': { duration: 42, density: 20 },
+    'complet': { duration: 42, density: 20 }
+  }
+
+  const phaseInfo = phases[phase]
+  if (!phaseInfo) {
+    return res.status(400).json({ error: 'Phase invalide' })
+  }
+
+  let calculatedSuperficie = superficie || 0
+  let calculatedBudget = budget || 0
+  let calculatedPoultry = 0
+
+  if (superficie > 0) {
+    calculatedPoultry = Math.floor(superficie * phaseInfo.density)
+  } else if (budget > 0) {
+    const costPerChicken = 450 + (phaseInfo.duration * 200)
+    calculatedPoultry = Math.floor(budget / costPerChicken)
+    calculatedSuperficie = Math.ceil(calculatedPoultry / phaseInfo.density)
+  }
+
+  if (calculatedBudget === 0 && calculatedPoultry > 0) {
+    const costPerChicken = 450 + (phaseInfo.duration * 200)
+    calculatedBudget = calculatedPoultry * costPerChicken
+  }
+
+  const sellingPricePerKg = 2500
+  const avgWeightAtEnd = 2.2
+  const totalRevenue = calculatedPoultry * avgWeightAtEnd * sellingPricePerKg
+  const estimatedProfit = totalRevenue - calculatedBudget
+
+  const result = {
+    phase: phase,
+    duration: phaseInfo.duration,
+    superficie: calculatedSuperficie,
+    budget: calculatedBudget,
+    poultryCount: calculatedPoultry,
+    estimatedRevenue: totalRevenue,
+    estimatedProfit: estimatedProfit
+  }
+
+  res.json(result)
+})
+
 // GET /api/tracking/lots - Récupérer tous les lots de l'utilisateur
-router.get('/lots', authenticateToken, requireSubscription(['pro', 'premium']), async (req, res) => {
+router.get('/lots', authenticate, requireSubscription(['pro', 'premium']), async (req, res) => {
   try {
     const db = await getDatabase()
     const { lang = 'fr' } = req.query
@@ -51,7 +311,7 @@ router.get('/lots', authenticateToken, requireSubscription(['pro', 'premium']), 
 })
 
 // POST /api/tracking/lots - Créer un nouveau lot
-router.post('/lots', authenticateToken, requireSubscription(['pro', 'premium']), async (req, res) => {
+router.post('/lots', authenticate, requireSubscription(['pro', 'premium']), async (req, res) => {
   try {
     const { 
       name, 
@@ -107,7 +367,7 @@ router.post('/lots', authenticateToken, requireSubscription(['pro', 'premium']),
 })
 
 // GET /api/tracking/lots/:id - Récupérer un lot spécifique
-router.get('/lots/:id', authenticateToken, requireSubscription(['pro', 'premium']), async (req, res) => {
+router.get('/lots/:id', authenticate, requireSubscription(['pro', 'premium']), async (req, res) => {
   try {
     const { id } = req.params
     const { lang = 'fr' } = req.query
@@ -185,7 +445,7 @@ router.get('/lots/:id', authenticateToken, requireSubscription(['pro', 'premium'
 })
 
 // POST /api/tracking/lots/:id/daily - Ajouter un enregistrement quotidien
-router.post('/lots/:id/daily', authenticateToken, requireSubscription(['pro', 'premium']), async (req, res) => {
+router.post('/lots/:id/daily', authenticate, requireSubscription(['pro', 'premium']), async (req, res) => {
   try {
     const { id } = req.params
     const { 
@@ -266,7 +526,7 @@ router.post('/lots/:id/daily', authenticateToken, requireSubscription(['pro', 'p
 })
 
 // POST /api/tracking/lots/:id/health-event - Ajouter un événement sanitaire
-router.post('/lots/:id/health-event', authenticateToken, requireSubscription(['pro', 'premium']), async (req, res) => {
+router.post('/lots/:id/health-event', authenticate, requireSubscription(['pro', 'premium']), async (req, res) => {
   try {
     const { id } = req.params
     const { 
@@ -330,7 +590,7 @@ router.post('/lots/:id/health-event', authenticateToken, requireSubscription(['p
 })
 
 // GET /api/tracking/performance/:id - Statistiques de performance d'un lot
-router.get('/performance/:id', authenticateToken, requireSubscription(['pro', 'premium']), async (req, res) => {
+router.get('/performance/:id', authenticate, requireSubscription(['pro', 'premium']), async (req, res) => {
   try {
     const { id } = req.params
     const { lang = 'fr' } = req.query
@@ -423,7 +683,7 @@ router.get('/performance/:id', authenticateToken, requireSubscription(['pro', 'p
 })
 
 // PUT /api/tracking/lots/:id - Mettre à jour un lot
-router.put('/lots/:id', authenticateToken, requireSubscription(['pro', 'premium']), async (req, res) => {
+router.put('/lots/:id', authenticate, requireSubscription(['pro', 'premium']), async (req, res) => {
   try {
     const { id } = req.params
     const { name, status, goals, building_info } = req.body

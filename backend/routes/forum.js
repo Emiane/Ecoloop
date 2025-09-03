@@ -1,6 +1,6 @@
 import express from 'express'
 import { getDatabase } from '../database/init.js'
-import { authenticateToken } from '../middleware/auth.js'
+import { authenticate } from '../middleware/auth.js'
 
 const router = express.Router()
 
@@ -276,7 +276,7 @@ router.get('/posts/:id', async (req, res) => {
 })
 
 // POST /api/forum/posts - Créer un nouveau post
-router.post('/posts', authenticateToken, async (req, res) => {
+router.post('/posts', authenticate, async (req, res) => {
   try {
     const { title, content, category_id } = req.body
     const { lang = 'fr' } = req.query
@@ -320,7 +320,7 @@ router.post('/posts', authenticateToken, async (req, res) => {
 })
 
 // POST /api/forum/posts/:id/replies - Répondre à un post
-router.post('/posts/:id/replies', authenticateToken, async (req, res) => {
+router.post('/posts/:id/replies', authenticate, async (req, res) => {
   try {
     const { id } = req.params
     const { content } = req.body
@@ -385,7 +385,7 @@ router.post('/posts/:id/replies', authenticateToken, async (req, res) => {
 })
 
 // POST /api/forum/vote - Voter pour un post ou une réponse
-router.post('/vote', authenticateToken, async (req, res) => {
+router.post('/vote', authenticate, async (req, res) => {
   try {
     const { post_id, reply_id, vote_type } = req.body
     const { lang = 'fr' } = req.query

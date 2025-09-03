@@ -1,15 +1,12 @@
 import express from 'express'
 import { getDatabase } from '../database/init.js'
-import { authenticateToken, requireRole } from '../middleware/auth.js'
+import { authenticate, requireAdmin } from '../middleware/auth.js'
 import bcrypt from 'bcryptjs'
 
 const router = express.Router()
 
-// Middleware pour vérifier les droits admin
-const requireAdmin = requireRole(['admin'])
-
 // GET /api/admin/dashboard - Tableau de bord administrateur
-router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/dashboard', authenticate, requireAdmin, async (req, res) => {
   try {
     const { lang = 'fr' } = req.query
     const db = await getDatabase()
@@ -110,7 +107,7 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // GET /api/admin/users - Gestion des utilisateurs
-router.get('/users', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/users', authenticate, requireAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 50, search, subscription, role, lang = 'fr' } = req.query
     const offset = (page - 1) * limit
@@ -186,7 +183,7 @@ router.get('/users', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // PUT /api/admin/users/:id - Modifier un utilisateur
-router.put('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/users/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params
     const { subscription, role, is_banned } = req.body
@@ -231,7 +228,7 @@ router.put('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // POST /api/admin/users - Créer un utilisateur
-router.post('/users', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/users', authenticate, requireAdmin, async (req, res) => {
   try {
     const { 
       first_name, last_name, email, password, phone, city, 
@@ -298,7 +295,7 @@ router.post('/users', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // GET /api/admin/content - Gestion du contenu
-router.get('/content', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/content', authenticate, requireAdmin, async (req, res) => {
   try {
     const { type = 'training', page = 1, limit = 20, lang = 'fr' } = req.query
     const offset = (page - 1) * limit
@@ -355,7 +352,7 @@ router.get('/content', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // POST /api/admin/content/training - Créer du contenu de formation
-router.post('/content/training', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/content/training', authenticate, requireAdmin, async (req, res) => {
   try {
     const {
       category, title_fr, title_en, summary_fr, summary_en,
@@ -406,7 +403,7 @@ router.post('/content/training', authenticateToken, requireAdmin, async (req, re
 })
 
 // GET /api/admin/analytics - Analytics et rapports
-router.get('/analytics', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/analytics', authenticate, requireAdmin, async (req, res) => {
   try {
     const { period = '30d', lang = 'fr' } = req.query
     const db = await getDatabase()
@@ -519,7 +516,7 @@ router.get('/analytics', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // GET /api/admin/system - Informations système
-router.get('/system', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/system', authenticate, requireAdmin, async (req, res) => {
   try {
     const { lang = 'fr' } = req.query
     const db = await getDatabase()
@@ -591,7 +588,7 @@ router.get('/system', authenticateToken, requireAdmin, async (req, res) => {
 })
 
 // POST /api/admin/maintenance - Opérations de maintenance
-router.post('/maintenance', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/maintenance', authenticate, requireAdmin, async (req, res) => {
   try {
     const { action } = req.body
     const { lang = 'fr' } = req.query

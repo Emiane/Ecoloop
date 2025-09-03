@@ -1,15 +1,6 @@
-import axios from 'axios'
+import fetch from 'node-fetch'
 
 const BASE_URL = 'http://localhost:5000'
-
-// Configuration d'axios
-const api = axios.create({
-  baseURL: BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-})
 
 async function testAPI() {
   console.log('🧪 Test de l\'API EcoLoop...\n')
@@ -17,15 +8,17 @@ async function testAPI() {
   try {
     // Test 1: Health check
     console.log('1️⃣ Test du health check...')
-    const healthResponse = await api.get('/health')
-    console.log('   ✅ Health check:', healthResponse.data.status)
+    const healthResponse = await fetch(`${BASE_URL}/health`)
+    const healthData = await healthResponse.json()
+    console.log('   ✅ Health check:', healthData.status)
 
     // Test 2: Login
     console.log('\n2️⃣ Test de connexion...')
-    const loginResponse = await api.post('/api/auth/login', {
-      email: 'user@demo.com',
-      password: 'demo123'
-    })
+    const loginResponse = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'user@demo.com',
         password: 'demo123'
       })
     })

@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import AppSimple from './AppSimple.jsx'
-import './index.css'
+import AppProgressive from './AppProgressive.jsx'
+import './index-simple.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AppSimple />
+    <AppProgressive />
   </React.StrictMode>,
 )

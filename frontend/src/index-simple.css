@@ -1,0 +1,35 @@
+/* CSS minimal pour test */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background-color: #548C2F;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #4a7829;
+}

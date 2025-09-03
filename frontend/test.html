@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Ecoloop</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Test Ecoloop Frontend</h1>
+        <p>Si tu vois cette page, le serveur frontend fonctionne !</p>
+        <p>Backend API: <a href="http://localhost:5000/health" target="_blank">http://localhost:5000/health</a></p>
+        <div id="status">Chargement...</div>
+    </div>
+
+    <script>
+        document.getElementById('status').innerHTML = '✅ JavaScript fonctionne !';
+        
+        // Test de l'API backend
+        fetch('http://localhost:5000/health')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('status').innerHTML += '<br>✅ Backend connecté : ' + data.message;
+            })
+            .catch(error => {
+                document.getElementById('status').innerHTML += '<br>❌ Erreur backend : ' + error.message;
+            });
+    </script>
+</body>
+</html>
